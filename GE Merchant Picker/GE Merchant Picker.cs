@@ -34,7 +34,7 @@ namespace GE_Merchant_Picker
         List<String> merchantsListProd = new List<string>();
 
         static string fileName = "Auto Merchants Adresses.xlsx";
-        static string path = Path.Combine(Environment.CurrentDirectory, fileName);
+        static string path = Path.Combine(Environment.CurrentDirectory, @"..\..\..\" + fileName);
 
         //Create COM Objects. Create a COM object for everything that is referenced
         static Microsoft.Office.Interop.Excel.Application xlAppQA = new Microsoft.Office.Interop.Excel.Application();
