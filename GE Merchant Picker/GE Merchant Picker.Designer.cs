@@ -170,7 +170,6 @@ namespace GE_Merchant_Picker
             this.MaximizeBox = false;
             this.Name = "GE_Merchant_Picker_Form";
             this.Text = "GE Merchant Picker";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.GE_Merchant_Picker_Form_FormClosing);
             this.ResumeLayout(false);
 
         }

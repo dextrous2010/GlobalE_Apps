@@ -8,8 +8,20 @@ namespace GE_Merchant_Picker
 {
     public class Merchant
     {
-        public String merchantName, mid, platformType, siteLoginUserName, siteLoginPassword, adminLoginUserName, adminLoginPassword,
-                        merchantSiteUri, adminUri, returnPortalUri, trackingPortalUri, logsUri, coupons, comments;
+        public String merchantName;
+        public String mid;
+        public String platformType;
+        public String siteLoginUserName;
+        public String siteLoginPassword;
+        public String adminLoginUserName;
+        public String adminLoginPassword;
+        public String merchantSiteUri;
+        public String adminUri;
+        public String returnPortalUri;
+        public String trackingPortalUri;
+        public String logsUri;
+        public String coupons;
+        public String comments;
 
         public Merchant() { }
 
