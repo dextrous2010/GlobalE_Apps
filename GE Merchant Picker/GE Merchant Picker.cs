@@ -22,6 +22,9 @@ namespace GE_Merchant_Picker
         bool firstRun = true;
         int chosenEnvironment = 0;
 
+        String SQLResult = "";
+        SqlConnection mySQLConnection = new SqlConnection();
+
         Merchant selectedMerchant = new Merchant();
 
         //Define the row from which all merchant names is started
@@ -96,11 +99,14 @@ namespace GE_Merchant_Picker
                 merchantsListBox.DataSource = merchantsListQA;
 
                 firstRun = false;
+
             }
 
             if (chosenEnvironment == 0) merchantsListBox.DataSource = merchantsListQA;
             else if (chosenEnvironment == 1) merchantsListBox.DataSource = merchantsListStg;
             else if (chosenEnvironment == 2) merchantsListBox.DataSource = merchantsListProd;
+
+            openDBConnection();
         }
 
         public void showMerchantDetails(string merchant)
@@ -307,14 +313,12 @@ namespace GE_Merchant_Picker
             }
         }
 
-        public String readFromSQL(String query, String columnName)
+        private void openDBConnection()
         {
-            String result = "";
-            SqlConnection myConnection = new SqlConnection();
 
             if (chosenEnvironment == 0)
             {
-                myConnection = new SqlConnection("user id=sql_qa_ukr_DenisH;" +
+                mySQLConnection = new SqlConnection("user id=sql_qa_ukr_DenisH;" +
                            "password=Admin_141;server=54.72.115.215;" +
                            "Trusted_Connection=no;" +
                            "database=GlobalE; " +
@@ -323,7 +327,7 @@ namespace GE_Merchant_Picker
 
             if (chosenEnvironment == 1)
             {
-                myConnection = new SqlConnection("user id=sql_qa_ukr_DenisH;" +
+                mySQLConnection = new SqlConnection("user id=sql_qa_ukr_DenisH;" +
                             "password=Admin_141;server=54.72.120.2;" +
                             "Trusted_Connection=no;" +
                             "database=GlobalE; " +
@@ -332,34 +336,44 @@ namespace GE_Merchant_Picker
 
             try
             {
-                myConnection.Open();
+                mySQLConnection.Open();
             }
-            catch (Exception) { }
+            catch (Exception) { MessageBox.Show("No connection to DB"); }
+        }
+
+        private void closeDBCOnnection()
+        {
+            try
+            {
+                mySQLConnection.Close();
+            }
+            catch (Exception) { MessageBox.Show("Can't close the connection to DB"); }
+
+        }
+
+        public String readFromSQL(String query, String columnName)
+        {
 
             try
             {
                 SqlDataReader myReader = null;
-                SqlCommand myCommand = new SqlCommand(query, myConnection);
+                SqlCommand myCommand = new SqlCommand(query, mySQLConnection);
                 myReader = myCommand.ExecuteReader();
                 while (myReader.Read())
                 {
-                    result = myReader[columnName].ToString();
+                    SQLResult = myReader[columnName].ToString();
                 }
             }
             catch (Exception) { }
 
-            try
-            {
-                myConnection.Close();
-            }
-            catch (Exception) { }
+            return SQLResult;
 
-            return result;
         }
 
         private void GE_Merchant_Picker_Form_FormClosing(object sender, FormClosingEventArgs e)
         {
             xlWorkbook.Close();
+            closeDBCOnnection();
         }
 
 
