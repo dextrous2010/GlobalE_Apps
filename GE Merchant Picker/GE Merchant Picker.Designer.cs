@@ -1,4 +1,6 @@
-﻿namespace GE_Merchant_Picker
+﻿using System.Drawing;
+
+namespace GE_Merchant_Picker
 {
     partial class GE_Merchant_Picker_Form
     {
@@ -114,6 +116,7 @@
             this.QaBtn.Text = "QA";
             this.QaBtn.UseVisualStyleBackColor = true;
             this.QaBtn.Click += new System.EventHandler(this.QaBtn_Click);
+            this.QaBtn.BackColor = Color.LightGreen;
             // 
             // stagingBtn
             // 

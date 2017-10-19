@@ -266,26 +266,45 @@ namespace GE_Merchant_Picker
 
         private void QaBtn_Click(object sender, EventArgs e)
         {
-
-            if (QaBtn.BackColor != Color.Orange)
-                QaBtn.BackColor = Color.Orange;
-            else
-                QaBtn.BackColor = Color.Green;
-
             chosenEnvironment = 0;
+            changeBtnsCollor();
             initializeMerchantsListBox();
         }
 
         private void stagingBtn_Click(object sender, EventArgs e)
         {
             chosenEnvironment = 1;
+            changeBtnsCollor();
             initializeMerchantsListBox();
         }
 
         private void productionBtn_Click(object sender, EventArgs e)
         {
             chosenEnvironment = 2;
+            changeBtnsCollor();
             initializeMerchantsListBox();
+        }
+
+        private void changeBtnsCollor()
+        {
+            switch(chosenEnvironment)
+            {
+                case 0:
+                    QaBtn.BackColor = Color.LightGreen;
+                    stagingBtn.BackColor = Color.Transparent;
+                    productionBtn.BackColor = Color.Transparent;
+                    break;
+                case 1:
+                    QaBtn.BackColor = Color.Transparent;
+                    stagingBtn.BackColor = Color.LightGreen;
+                    productionBtn.BackColor = Color.Transparent;
+                    break;
+                case 2:
+                    QaBtn.BackColor = Color.Transparent;
+                    stagingBtn.BackColor = Color.Transparent;
+                    productionBtn.BackColor = Color.LightGreen;
+                    break;
+            }
         }
 
         public String readFromSQL(String query, String columnName)
