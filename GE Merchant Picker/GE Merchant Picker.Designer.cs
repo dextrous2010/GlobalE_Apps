@@ -109,14 +109,14 @@ namespace GE_Merchant_Picker
             // 
             // QaBtn
             // 
+            this.QaBtn.BackColor = System.Drawing.Color.LightGreen;
             this.QaBtn.Location = new System.Drawing.Point(13, 13);
             this.QaBtn.Name = "QaBtn";
             this.QaBtn.Size = new System.Drawing.Size(52, 23);
             this.QaBtn.TabIndex = 3;
             this.QaBtn.Text = "QA";
-            this.QaBtn.UseVisualStyleBackColor = true;
+            this.QaBtn.UseVisualStyleBackColor = false;
             this.QaBtn.Click += new System.EventHandler(this.QaBtn_Click);
-            this.QaBtn.BackColor = Color.LightGreen;
             // 
             // stagingBtn
             // 
@@ -170,6 +170,7 @@ namespace GE_Merchant_Picker
             this.MaximizeBox = false;
             this.Name = "GE_Merchant_Picker_Form";
             this.Text = "GE Merchant Picker";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.GE_Merchant_Picker_Form_FormClosing);
             this.ResumeLayout(false);
 
         }

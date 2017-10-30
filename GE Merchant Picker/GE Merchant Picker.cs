@@ -6,10 +6,9 @@ using OpenQA.Selenium.Chrome;
 using Microsoft.Office.Interop.Excel;
 using System.IO;
 using AutoIt;
-using System.Data.SqlClient;
-using System.Net;
 using System.Drawing;
 using System.Text;
+using System.Net;
 
 namespace GE_Merchant_Picker
 {
@@ -20,164 +19,40 @@ namespace GE_Merchant_Picker
         Production
     }
 
-    class DAL
-    {
-        static public String readFromSQL(String query, String columnName, string connectionString)
-        {
-            string SQLResult = string.Empty;
-            try
-            {
-                using (SqlConnection connection = new SqlConnection())
-                {
-                    connection.ConnectionString = connectionString;
-                    connection.Open();
-                    using (SqlCommand myCommand = new SqlCommand(query, connection))
-                    using (SqlDataReader myReader = myCommand.ExecuteReader())
-                    {
-                        while (myReader.Read())
-                        {
-                            SQLResult = myReader[columnName].ToString();
-                        }
-                    }
-                }
-            }
-            catch (Exception) 
-            {
-                MessageBox.Show("Can't take read data from DB");
-            }
-
-            return SQLResult;
-
-        }
-
-    }
-    class EnvironmentData
-    {
-        public int startRowInExcelWithMerchantName;
-        public List<String> merchantsList { get; private set; } = new List<string>();
-        public Worksheet xlWorksheet;
-        public Range xlRange;
-        private string ConnectionString;
-
-        public EnvironmentData(int startRowInExcelWithMerchantName, Worksheet xlWorksheet, string serverIP = null)
-        {
-            this.startRowInExcelWithMerchantName = startRowInExcelWithMerchantName;
-            this.xlWorksheet = xlWorksheet;
-            this.xlRange = xlWorksheet.UsedRange;
-
-            int tempRow = startRowInExcelWithMerchantName;
-
-
-            while (xlRange.Cells[tempRow, 1] != null && xlRange.Cells[tempRow, 1].Value2 != null)
-            {
-                merchantsList.Add(xlRange.Cells[tempRow, 1].Value2.ToString());
-                tempRow++;
-            }
-
-            if (!string.IsNullOrWhiteSpace(serverIP))
-            {
-                ConnectionString = "user id=sql_qa_ukr_DenisH;" +
-                    "password=Admin_141;" +
-                    "server=" +
-                    serverIP +
-                    ";" +
-                    "Trusted_Connection=no;" +
-                    "database=GlobalE;" +
-                    "connection timeout=30";
-            }
-
-        }
-
-        public Merchant GetMerchant(string merchantName)
-        {
-            int merchantRow = merchantsList.IndexOf(merchantName) + startRowInExcelWithMerchantName;
-
-            var merchant = new Merchant();
-
-            merchant.merchantName = xlRange.Cells[merchantRow, 1].Value2?.ToString() ?? String.Empty;
-
-            merchant.merchantSiteUri = xlRange.Cells[merchantRow, 2].Value2?.ToString() ?? String.Empty;
-            merchant.adminUri = xlRange.Cells[merchantRow, 3].Value2?.ToString() ?? String.Empty;
-            merchant.adminLoginUserName = xlRange.Cells[merchantRow, 4].Value2?.ToString() ?? String.Empty;
-            merchant.adminLoginPassword = xlRange.Cells[merchantRow, 5].Value2?.ToString() ?? String.Empty;
-            merchant.mid = xlRange.Cells[merchantRow, 6].Value2?.ToString() ?? String.Empty;
-            merchant.siteLoginUserName = xlRange.Cells[merchantRow, 7].Value2?.ToString() ?? String.Empty;
-            merchant.siteLoginPassword = xlRange.Cells[merchantRow, 8].Value2?.ToString() ?? String.Empty;
-
-            merchant.comments = xlRange.Cells[merchantRow, 9].Value2?.ToString() ?? String.Empty;
-            merchant.returnPortalUri = xlRange.Cells[merchantRow, 10].Value2?.ToString() ?? String.Empty;
-            merchant.logsUri = xlRange.Cells[merchantRow, 11].Value2?.ToString() ?? String.Empty;
-            merchant.coupons = xlRange.Cells[merchantRow, 12].Value2?.ToString() ?? String.Empty;
-            merchant.trackingPortalUri = xlRange.Cells[merchantRow, 13].Value2?.ToString() ?? String.Empty;
-
-            if (merchant.mid == "")
-            {
-
-                String queryMid = "select top 1 MerchantId from Merchants where merchantname like '%" + merchant.merchantName + "%'"
-                                    + " and IsActive = 1 and SiteURL = '" + merchant.merchantSiteUri + "'";
-                merchant.mid = DAL.readFromSQL(queryMid, "MerchantId", ConnectionString);
-            }
-
-            String queryPlatform = "select MerchantPlatformName from MerchantPlatforms where MerchantPlatformId = (select top 1 MerchantPlatformId from Merchants where merchantname like '%"
-                                + merchant.merchantName + "%' and IsActive = 1)";
-            merchant.platformType = DAL.readFromSQL(queryPlatform, "MerchantPlatformName", ConnectionString);
-
-            String lineForTextBox = "";
-            //StringBuilder 
-
-            if (!string.IsNullOrWhiteSpace(merchant.mid))
-            {
-                lineForTextBox = lineForTextBox + "MerchantID --> " + merchant.mid;
-            }
-            if (merchant.platformType != "") lineForTextBox = lineForTextBox + "\nPlatform --> " + merchant.platformType;
-            if (merchant.merchantSiteUri != "") lineForTextBox = lineForTextBox + "\nURL -->  " + merchant.merchantSiteUri;
-            if (merchant.siteLoginUserName != "") lineForTextBox = lineForTextBox + "\nUser -->  " + merchant.siteLoginUserName;
-            if (merchant.siteLoginPassword != "") lineForTextBox = lineForTextBox + "\nPass -->  " + merchant.siteLoginPassword;
-            if (merchant.adminUri != "") lineForTextBox = lineForTextBox + "\nAdmin --> " + merchant.adminUri;
-            if (merchant.adminLoginUserName != "") lineForTextBox = lineForTextBox + "\nUser -->  " + merchant.adminLoginUserName;
-            if (merchant.adminLoginPassword != "") lineForTextBox = lineForTextBox + "\nPass -->  " + merchant.adminLoginPassword;
-            if (merchant.returnPortalUri != "") lineForTextBox = lineForTextBox + "\nRetrun Portal --> " + merchant.returnPortalUri;
-            if (merchant.trackingPortalUri != "") lineForTextBox = lineForTextBox + "\nTracking Portal --> " + merchant.trackingPortalUri;
-            if (merchant.coupons != "") lineForTextBox = lineForTextBox + "\nCoupons --> " + merchant.coupons;
-            if (merchant.comments != "") lineForTextBox = lineForTextBox + "\nComment --> " + merchant.comments;
-
-
-            return merchant;
-        }
-
-    }
-
     public partial class GE_Merchant_Picker_Form : Form
     {
-        
-        const String GEAdminQA = "https://qa.bglobale.com/GlobaleAdmin";
-        const String GEAdminStg = "https://www2.bglobale.com/GlobaleAdmin";
-        const String GEAdminProd = "https://web.global-e.com/GlobaleAdmin";
 
-        bool firstRun = true;
+        const String GEAdminUriQA = "https://qa.bglobale.com/GlobaleAdmin";
+        const String GEAdminUriStg = "https://www2.bglobale.com/GlobaleAdmin";
+        const String GEAdminUriProd = "https://web.global-e.com/GlobaleAdmin";
+
         EnvironmentType chosenEnvironment = EnvironmentType.QA;
-
-        String SQLResult = "";
-        SqlConnection mySQLConnection = new SqlConnection();
 
         Merchant selectedMerchant = new Merchant();
 
         Dictionary<EnvironmentType, EnvironmentData> environmentList = new Dictionary<EnvironmentType, EnvironmentData>();
 
-        //List<String> merchantsListQA = new List<string>();
-        //List<String> merchantsListStg = new List<string>();
-        //List<String> merchantsListProd = new List<string>();
-
-        static string fileName = "Auto Merchants Adresses.xlsx";
+        static string fileName = "Merchants Adresses.xlsx";
         static string path = Path.Combine(Environment.CurrentDirectory, @"..\..\..\" + fileName);
+        //string pathToMerchantsFile = Path.Combine(Environment.CurrentDirectory, fileName);
+
 
         //Create COM Objects. Create a COM object for everything that is referenced
         static Microsoft.Office.Interop.Excel.Application xlAppQA = new Microsoft.Office.Interop.Excel.Application();
-        static Workbook xlWorkbook = xlAppQA.Workbooks.Open(path);
+        static Workbook xlWorkbook;
 
 
         public GE_Merchant_Picker_Form()
         {
+
+            //using (var client = new System.Net.WebClient())
+            //{
+            //    client.Credentials = new NetworkCredential("denis.hural@global-e.com", "L0g1tech_10");
+            //    client.DownloadFile("https://globaleonline-my.sharepoint.com/personal/ifat_perlmandomy_global-e_com/_layouts/15/guestaccess.aspx?guestaccesstoken=kLW64SzxxAp0WOSrhQYUfiY2mtfj8kuh3auEBOYDy4c%3d&docid=10fc9c202737e438f975c8ef3ae822b8d&rev=1", "Merchants Adresses.xlsx");
+            //}
+
+            xlWorkbook = xlAppQA.Workbooks.Open(path);
+
             environmentList.Add(EnvironmentType.QA, new EnvironmentData(4, xlWorkbook.Sheets["QA"], "54.72.115.215"));
             environmentList.Add(EnvironmentType.Staging, new EnvironmentData(5, xlWorkbook.Sheets["Staging"], "54.72.120.2"));
             environmentList.Add(EnvironmentType.Production, new EnvironmentData(3, xlWorkbook.Sheets["Production"]));
@@ -189,105 +64,37 @@ namespace GE_Merchant_Picker
 
         public void initializeMerchantsListBox()
         {
-           merchantsListBox.DataSource = environmentList[chosenEnvironment].merchantsList;
+            merchantsListBox.DataSource = environmentList[chosenEnvironment].merchantsList;
         }
 
         public void showMerchantDetails(string merchant)
         {
-
-            //int tempRow = environmentList[EnvironmentType.QA].startRowInExcelWithMerchantName;
-            //Range xlRange = environmentList[EnvironmentType.QA].xlRange;
-
-            selectedMerchant = environmentList[chosenEnvironment].GetMerchant(merchant);
-
-            //if (chosenEnvironment != EnvironmentType.Production)
-            //{
-            //    if (chosenEnvironment == EnvironmentType.QA)
-            //    {
-            //        tempRow = merchantsListQA.IndexOf(merchant) + environmentList[EnvironmentType.QA].startRowInExcelWithMerchantName;
-            //        xlRange = environmentList[EnvironmentType.QA].xlRange;
-            //    }
-            //    else if (chosenEnvironment == EnvironmentType.Staging)
-            //    {
-            //        tempRow = merchantsListStg.IndexOf(merchant) + environmentList[EnvironmentType.Staging].startRowInExcelWithMerchantName;
-            //        xlRange = environmentList[EnvironmentType.Staging].xlRange;
-            //    }
-
-            //Initialize selected merchant
-            //
-            //selectedMerchant.merchantSiteUri = xlRange.Cells[tempRow, 2].Value2 != null ? xlRange.Cells[tempRow, 2].Value2.ToString() : "";
-
-            //selectedMerchant.merchantName = xlRange.Cells[tempRow, 1].Value2?.ToString() ?? String.Empty;
-
-            //selectedMerchant.merchantSiteUri = xlRange.Cells[tempRow, 2].Value2?.ToString() ?? String.Empty;
-            //selectedMerchant.adminUri = xlRange.Cells[tempRow, 3].Value2?.ToString() ?? String.Empty;
-            //selectedMerchant.adminLoginUserName = xlRange.Cells[tempRow, 4].Value2?.ToString() ?? String.Empty;
-            //selectedMerchant.adminLoginPassword = xlRange.Cells[tempRow, 5].Value2?.ToString() ?? String.Empty;
-            //selectedMerchant.mid = xlRange.Cells[tempRow, 6].Value2?.ToString() ?? String.Empty;
-            //selectedMerchant.siteLoginUserName = xlRange.Cells[tempRow, 7].Value2?.ToString() ?? String.Empty;
-            //selectedMerchant.siteLoginPassword = xlRange.Cells[tempRow, 8].Value2?.ToString() ?? String.Empty;
-
-            //selectedMerchant.comments = xlRange.Cells[tempRow, 9].Value2?.ToString() ?? String.Empty;
-            //selectedMerchant.returnPortalUri = xlRange.Cells[tempRow, 10].Value2?.ToString() ?? String.Empty;
-            //selectedMerchant.logsUri = xlRange.Cells[tempRow, 11].Value2?.ToString() ?? String.Empty;
-            //selectedMerchant.coupons = xlRange.Cells[tempRow, 12].Value2?.ToString() ?? String.Empty;
-            //selectedMerchant.trackingPortalUri = xlRange.Cells[tempRow, 13].Value2?.ToString() ?? String.Empty;
-
-            //if (selectedMerchant.mid == "")
-            //{
-
-            //    String queryMid = "select top 1 MerchantId from Merchants where merchantname like '%" + selectedMerchant.merchantName + "%'"
-            //                        + " and IsActive = 1 and SiteURL = '" + selectedMerchant.merchantSiteUri + "'";
-            //    selectedMerchant.mid = readFromSQL(queryMid, "MerchantId");
-            //}
-
-            //String queryPlatform = "select MerchantPlatformName from MerchantPlatforms where MerchantPlatformId = (select top 1 MerchantPlatformId from Merchants where merchantname like '%"
-            //                    + selectedMerchant.merchantName + "%' and IsActive = 1)";
-            //selectedMerchant.platformType = readFromSQL(queryPlatform, "MerchantPlatformName");
-
-            String lineForTextBox = "";
-            //StringBuilder 
-
-            if (!string.IsNullOrWhiteSpace(selectedMerchant.mid))
+            try
             {
-                lineForTextBox = lineForTextBox + "MerchantID --> " + selectedMerchant.mid;
+                selectedMerchant = environmentList[chosenEnvironment].GetMerchant(merchant);
             }
-            if (selectedMerchant.platformType != "") lineForTextBox = lineForTextBox + "\nPlatform --> " + selectedMerchant.platformType;
-            if (selectedMerchant.merchantSiteUri != "") lineForTextBox = lineForTextBox + "\nURL -->  " + selectedMerchant.merchantSiteUri;
-            if (selectedMerchant.siteLoginUserName != "") lineForTextBox = lineForTextBox + "\nUser -->  " + selectedMerchant.siteLoginUserName;
-            if (selectedMerchant.siteLoginPassword != "") lineForTextBox = lineForTextBox + "\nPass -->  " + selectedMerchant.siteLoginPassword;
-            if (selectedMerchant.adminUri != "") lineForTextBox = lineForTextBox + "\nAdmin --> " + selectedMerchant.adminUri;
-            if (selectedMerchant.adminLoginUserName != "") lineForTextBox = lineForTextBox + "\nUser -->  " + selectedMerchant.adminLoginUserName;
-            if (selectedMerchant.adminLoginPassword != "") lineForTextBox = lineForTextBox + "\nPass -->  " + selectedMerchant.adminLoginPassword;
-            if (selectedMerchant.returnPortalUri != "") lineForTextBox = lineForTextBox + "\nRetrun Portal --> " + selectedMerchant.returnPortalUri;
-            if (selectedMerchant.trackingPortalUri != "") lineForTextBox = lineForTextBox + "\nTracking Portal --> " + selectedMerchant.trackingPortalUri;
-            if (selectedMerchant.coupons != "") lineForTextBox = lineForTextBox + "\nCoupons --> " + selectedMerchant.coupons;
-            if (selectedMerchant.comments != "") lineForTextBox = lineForTextBox + "\nComment --> " + selectedMerchant.comments;
+            catch (Exception)
+            {
+                selectedMerchant.ResetMerchant();
+                MessageBox.Show("Can't read data from DB");
+            }
 
-            richTextBox1.Text = lineForTextBox;
+            StringBuilder stringBuilder = new StringBuilder();
 
-            //}
-            //else if (chosenEnvironment == EnvironmentType.Production)
-            //{
+            if (!string.IsNullOrWhiteSpace(selectedMerchant.mid)) stringBuilder.Append("MerchantID --> " + selectedMerchant.mid);
+            if (!string.IsNullOrWhiteSpace(selectedMerchant.platformType)) stringBuilder.Append("\nPlatform --> " + selectedMerchant.platformType);
+            if (!string.IsNullOrWhiteSpace(selectedMerchant.merchantSiteUri)) stringBuilder.Append("\nURL -->  " + selectedMerchant.merchantSiteUri);
+            if (!string.IsNullOrWhiteSpace(selectedMerchant.siteLoginUserName)) stringBuilder.Append("\nUser -->  " + selectedMerchant.siteLoginUserName);
+            if (!string.IsNullOrWhiteSpace(selectedMerchant.siteLoginPassword)) stringBuilder.Append("\nPass -->  " + selectedMerchant.siteLoginPassword);
+            if (!string.IsNullOrWhiteSpace(selectedMerchant.adminUri)) stringBuilder.Append("\nAdmin --> " + selectedMerchant.adminUri);
+            if (!string.IsNullOrWhiteSpace(selectedMerchant.adminLoginUserName)) stringBuilder.Append("\nUser -->  " + selectedMerchant.adminLoginUserName);
+            if (!string.IsNullOrWhiteSpace(selectedMerchant.adminLoginPassword)) stringBuilder.Append("\nPass -->  " + selectedMerchant.adminLoginPassword);
+            if (!string.IsNullOrWhiteSpace(selectedMerchant.returnPortalUri)) stringBuilder.Append("\nRetrun Portal --> " + selectedMerchant.returnPortalUri);
+            if (!string.IsNullOrWhiteSpace(selectedMerchant.trackingPortalUri)) stringBuilder.Append("\nTracking Portal --> " + selectedMerchant.trackingPortalUri);
+            if (!string.IsNullOrWhiteSpace(selectedMerchant.coupons)) stringBuilder.Append("\nCoupons --> " + selectedMerchant.coupons);
+            if (!string.IsNullOrWhiteSpace(selectedMerchant.comments)) stringBuilder.Append("\nComment --> " + selectedMerchant.comments);
 
-            //    tempRow = merchantsListProd.IndexOf(merchant) + environmentList[EnvironmentType.Production].startRowInExcelWithMerchantName;
-            //    xlRange = environmentList[EnvironmentType.Production].xlRange;
-
-            //    selectedMerchant.merchantName = (xlRange.Cells[tempRow, 1].Value2 ?? String.Empty).ToString();
-            //    selectedMerchant.merchantSiteUri = (xlRange.Cells[tempRow, 2].Value2 ?? String.Empty).ToString();
-            //    selectedMerchant.mid = (xlRange.Cells[tempRow, 3].Value2 ?? String.Empty).ToString();
-            //    selectedMerchant.coupons = (xlRange.Cells[tempRow, 4].Value2 ?? String.Empty).ToString();
-
-                //String lineForTextBox = "";
-
-                //if (selectedMerchant.mid != "") lineForTextBox = lineForTextBox + "MerchantID --> " + selectedMerchant.mid;
-                //if (selectedMerchant.merchantSiteUri != "") lineForTextBox = lineForTextBox + "\nURL -->  " + selectedMerchant.merchantSiteUri;
-                //if (selectedMerchant.coupons != "") lineForTextBox = lineForTextBox + "\nCoupons --> " + selectedMerchant.coupons;
-
-
-                //richTextBox1.Text = lineForTextBox;
-
-            //}
+            richTextBox1.Text = stringBuilder.ToString();
 
             if (selectedMerchant.merchantSiteUri != null && !Convert.ToString(selectedMerchant.merchantSiteUri).Contains("http")) goToSiteBtn.Enabled = false; else goToSiteBtn.Enabled = true;
             if (selectedMerchant.adminUri != null && !Convert.ToString(selectedMerchant.adminUri).Contains("http")) goToAdminBtn.Enabled = false; else goToAdminBtn.Enabled = true;
@@ -309,10 +116,10 @@ namespace GE_Merchant_Picker
 
         private void goToGEAdminBtn_Click(object sender, EventArgs e)
         {
-            if (chosenEnvironment == EnvironmentType.QA) { launchUriInChrome(GEAdminQA, "", ""); }
-            if (chosenEnvironment == EnvironmentType.Staging) { launchUriInChrome(GEAdminStg, "", ""); }
-            if (chosenEnvironment == EnvironmentType.Production) { launchUriInChrome(GEAdminProd, "", ""); }
-            
+            if (chosenEnvironment == EnvironmentType.QA) { launchUriInChrome(GEAdminUriQA, "", ""); }
+            if (chosenEnvironment == EnvironmentType.Staging) { launchUriInChrome(GEAdminUriStg, "", ""); }
+            if (chosenEnvironment == EnvironmentType.Production) { launchUriInChrome(GEAdminUriProd, "", ""); }
+
         }
 
         private void goToAdminBtn_Click(object sender, EventArgs e)
@@ -381,7 +188,7 @@ namespace GE_Merchant_Picker
 
         private void changeBtnsCollor()
         {
-            switch(chosenEnvironment)
+            switch (chosenEnvironment)
             {
                 case EnvironmentType.QA:
                     QaBtn.BackColor = Color.LightGreen;
@@ -401,6 +208,9 @@ namespace GE_Merchant_Picker
             }
         }
 
-
+        private void GE_Merchant_Picker_Form_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            xlWorkbook.Close();
+        }
     }
 }
