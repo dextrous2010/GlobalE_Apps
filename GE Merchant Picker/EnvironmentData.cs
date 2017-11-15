@@ -68,13 +68,24 @@ namespace GE_Merchant_Picker
                 {
 
                     String queryMid = "select top 1 MerchantId from Merchants where merchantname like '%" + merchant.merchantName + "%'"
-                                        + " and IsActive = 1 and SiteURL = '" + merchant.merchantSiteUri + "'";
+                                        + " and SiteURL = '" + merchant.merchantSiteUri + "'" + " and IsActive = 1";
                     merchant.mid = DAL.readFromSQL(queryMid, "MerchantId", ConnectionString);
                 }
 
-                String queryPlatform = "select MerchantPlatformName from MerchantPlatforms where MerchantPlatformId = (select top 1 MerchantPlatformId from Merchants where merchantname like '%"
-                                    + merchant.merchantName + "%' and IsActive = 1)";
+                String queryPlatformTmp = "select MerchantPlatformName from MerchantPlatforms where MerchantPlatformId = (select top 1 MerchantPlatformId from Merchants where merchantname like '%" + merchant.merchantName + "%'"
+                                        + " and SiteURL = '" + merchant.merchantSiteUri + "'" + " and IsActive = 1)";
+
+                String queryPlatform = queryPlatformTmp;
+                
+                //When query has specific characters - replace them to avoid exception
+                //
+                if (queryPlatformTmp.Contains("Paul's"))
+                {
+                    queryPlatform = queryPlatformTmp.Replace("Paul's", "Paul_s");
+                }
+
                 merchant.platformType = DAL.readFromSQL(queryPlatform, "MerchantPlatformName", ConnectionString);
+                
             }
 
             return merchant;
