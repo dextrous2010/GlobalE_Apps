@@ -30,6 +30,7 @@ namespace GE_Merchant_Picker
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(GE_Merchant_Picker_Form));
             this.merchantsListBox = new System.Windows.Forms.ListBox();
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.goToSiteBtn = new System.Windows.Forms.Button();
@@ -167,6 +168,7 @@ namespace GE_Merchant_Picker
             this.Controls.Add(this.richTextBox1);
             this.Controls.Add(this.merchantsListBox);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.Name = "GE_Merchant_Picker_Form";
             this.Text = "GE Merchant Picker";
