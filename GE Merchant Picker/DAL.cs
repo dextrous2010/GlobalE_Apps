@@ -12,19 +12,26 @@ namespace GE_Merchant_Picker
             using (SqlConnection connection = new SqlConnection())
             {
                 connection.ConnectionString = connectionString;
-                connection.Open();
-                using (SqlCommand myCommand = new SqlCommand(query, connection))
-                using (SqlDataReader myReader = myCommand.ExecuteReader())
+                //SqlCommand com = new SqlCommand();
+                //com.CommandTimeout = 1;
+                try
                 {
-                    while (myReader.Read())
+                    connection.Open();
+                    using (SqlCommand myCommand = new SqlCommand(query, connection))
+                    using (SqlDataReader myReader = myCommand.ExecuteReader())
                     {
-                        SQLResult = myReader[columnName].ToString();
+                        while (myReader.Read())
+                        {
+                            SQLResult = myReader[columnName].ToString();
+                        }
                     }
+                }
+                catch(Exception e)
+                {
                 }
             }
 
             return SQLResult;
-
         }
     }
 }
