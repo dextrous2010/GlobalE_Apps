@@ -9,6 +9,8 @@ using AutoIt;
 using System.Drawing;
 using System.Text;
 using System.Net;
+using System.Security;
+using Microsoft.SharePoint.Client;
 
 namespace GE_Merchant_Picker
 {
@@ -19,7 +21,7 @@ namespace GE_Merchant_Picker
         Production
     }
 
-    public partial class GE_Merchant_Picker_Form : Form
+    public partial class GE_Merchant_Picker_Form : System.Windows.Forms.Form
     {
 
         const String GEAdminUriQA = "https://qa.bglobale.com/GlobaleAdmin";
@@ -34,24 +36,41 @@ namespace GE_Merchant_Picker
 
         static string fileName = "Merchants Adresses.xlsx";
         static string path = Path.Combine(Environment.CurrentDirectory, @"..\..\..\" + fileName);
-        //string pathToMerchantsFile = Path.Combine(Environment.CurrentDirectory, fileName);
+        string pathToMerchantsFile = Path.Combine(Environment.CurrentDirectory, fileName);
 
 
         //Create COM Objects. Create a COM object for everything that is referenced
         static Microsoft.Office.Interop.Excel.Application xlAppQA = new Microsoft.Office.Interop.Excel.Application();
         static Workbook xlWorkbook;
 
-
-
+        const string username = "Denis.Hural@global-e.com";
+        const string password = "L0g1tech_10";
+        const string url = @"https://globaleonline-my.sharepoint.com/:x:/r/personal/ifat_perlmandomy_global-e_com/_layouts/15/WopiFrame.aspx?sourcedoc=%7B0FC9C202-737E-438F-975C-8EF3AE822B8D%7D&file=Merchants%20Adresses.xlsx&action=default&IsList=1&ListId=%7BE4F44CE8-04E4-4662-8FE7-8A1BB9F2F8F0%7D&ListItemId=9";
+        
 
         public GE_Merchant_Picker_Form()
         {
+            /*
+            using (var client = new System.Net.WebClient())
+            {
+                client.Credentials = new NetworkCredential("Denis.Hural@global-e.com", "L0g1tech_10");
 
-            //using (var client = new System.Net.WebClient())
-            //{
-            //    client.Credentials = new NetworkCredential("denis.hural@global-e.com", "L0g1tech_10");
-            //    client.DownloadFile("https://globaleonline-my.sharepoint.com/personal/ifat_perlmandomy_global-e_com/_layouts/15/guestaccess.aspx?guestaccesstoken=kLW64SzxxAp0WOSrhQYUfiY2mtfj8kuh3auEBOYDy4c%3d&docid=10fc9c202737e438f975c8ef3ae822b8d&rev=1", "Merchants Adresses.xlsx");
-            //}
+                //client.UseDefaultCredentials = true;
+                //client.Proxy.Credentials = System.Net.CredentialCache.DefaultCredentials;
+                String Url = "https://globaleonline-my.sharepoint.com/personal/ifat_perlmandomy_global-e_com/_layouts/15/WopiFrame.aspx?sourcedoc=%7B0FC9C202-737E-438F-975C-8EF3AE822B8D%7D&file=Merchants%20Adresses.xlsx&action=default&IsList=1&ListId=%7BE4F44CE8-04E4-4662-8FE7-8A1BB9F2F8F0%7D&ListItemId=9";
+                String destFileName = "Merchants Adresses.xlsx";
+                HttpWebRequest req = (HttpWebRequest)WebRequest.Create(Url);
+                req.UserAgent = "testacc";
+                client.DownloadFile(Url, destFileName);
+            }
+            */
+
+
+            var securedPassword = new SecureString();
+            foreach (var c in password.ToCharArray()) securedPassword.AppendChar(c);
+            var credentials = new SharePointOnlineCredentials(username, securedPassword);
+
+            DownloadFile(url, credentials, "Merchants Adresses.xlsx");
 
 
             xlWorkbook = xlAppQA.Workbooks.Open(path);
@@ -63,6 +82,24 @@ namespace GE_Merchant_Picker
             InitializeComponent();
             initializeMerchantsListBox();
 
+        }
+
+        private static void DownloadFile(string webUrl, ICredentials credentials, string filePath)
+        {
+            using (WebClient client = new WebClient())
+            {
+                //client.Headers.Add("X-FORMS_BASED_AUTH_ACCEPTED", "f");
+                //client.Headers.Add("User-Agent: Other");
+
+                client.UseDefaultCredentials = true;
+                //client.Proxy.Credentials = System.Net.CredentialCache.DefaultCredentials;
+                //client.Proxy = null;
+                //client.Credentials = credentials;
+                //client.Credentials = new NetworkCredential("Denis.Hural@global-e.com", "L0g1tech_10");
+                //HttpWebRequest req = (HttpWebRequest)WebRequest.Create(webUrl);
+                //req.UserAgent = "testacc";
+                client.DownloadFile(new Uri(webUrl), filePath);
+            }
         }
 
         public void initializeMerchantsListBox()

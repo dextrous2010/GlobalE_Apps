@@ -26,7 +26,7 @@ namespace GE_Merchant_Picker
                         }
                     }
                 }
-                catch(Exception e)
+                catch(Exception)
                 {
                 }
             }
