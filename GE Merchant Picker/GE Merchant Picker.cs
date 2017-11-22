@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Support.UI;
 using Microsoft.Office.Interop.Excel;
 using System.IO;
 using AutoIt;
 using System.Drawing;
 using System.Text;
 using System.Net;
-using System.Security;
-using Microsoft.SharePoint.Client;
+using System.Net.NetworkInformation;
 
 namespace GE_Merchant_Picker
 {
@@ -34,72 +34,41 @@ namespace GE_Merchant_Picker
 
         Dictionary<EnvironmentType, EnvironmentData> environmentList = new Dictionary<EnvironmentType, EnvironmentData>();
 
-        static string fileName = "Merchants Adresses.xlsx";
-        static string path = Path.Combine(Environment.CurrentDirectory, @"..\..\..\" + fileName);
+        const string fileName = "Merchants Adresses.xlsx";
         string pathToMerchantsFile = Path.Combine(Environment.CurrentDirectory, fileName);
-
+        const string urlToDownloadMerhcnatsFile = @"https://globaleonline-my.sharepoint.com/personal/ifat_perlmandomy_global-e_com/_layouts/15/download.aspx?guestaccesstoken=kLW64SzxxAp0WOSrhQYUfiY2mtfj8kuh3auEBOYDy4c%3D&docid=10fc9c202737e438f975c8ef3ae822b8d&rev=1&e=0ab994c81d334fbb80357e0d026af2f6";
 
         //Create COM Objects. Create a COM object for everything that is referenced
         static Microsoft.Office.Interop.Excel.Application xlAppQA = new Microsoft.Office.Interop.Excel.Application();
         static Workbook xlWorkbook;
 
-        const string username = "Denis.Hural@global-e.com";
-        const string password = "L0g1tech_10";
-        const string url = @"https://globaleonline-my.sharepoint.com/:x:/r/personal/ifat_perlmandomy_global-e_com/_layouts/15/WopiFrame.aspx?sourcedoc=%7B0FC9C202-737E-438F-975C-8EF3AE822B8D%7D&file=Merchants%20Adresses.xlsx&action=default&IsList=1&ListId=%7BE4F44CE8-04E4-4662-8FE7-8A1BB9F2F8F0%7D&ListItemId=9";
-        
 
         public GE_Merchant_Picker_Form()
         {
-            /*
+            //Get latest Merchant's file from sharepoint
             using (var client = new System.Net.WebClient())
             {
-                client.Credentials = new NetworkCredential("Denis.Hural@global-e.com", "L0g1tech_10");
-
-                //client.UseDefaultCredentials = true;
-                //client.Proxy.Credentials = System.Net.CredentialCache.DefaultCredentials;
-                String Url = "https://globaleonline-my.sharepoint.com/personal/ifat_perlmandomy_global-e_com/_layouts/15/WopiFrame.aspx?sourcedoc=%7B0FC9C202-737E-438F-975C-8EF3AE822B8D%7D&file=Merchants%20Adresses.xlsx&action=default&IsList=1&ListId=%7BE4F44CE8-04E4-4662-8FE7-8A1BB9F2F8F0%7D&ListItemId=9";
-                String destFileName = "Merchants Adresses.xlsx";
-                HttpWebRequest req = (HttpWebRequest)WebRequest.Create(Url);
-                req.UserAgent = "testacc";
-                client.DownloadFile(Url, destFileName);
+                //String destFileName = "Merchants Adresses.xlsx";
+                client.UseDefaultCredentials = true;
+                try
+                {
+                    client.DownloadFile(urlToDownloadMerhcnatsFile, pathToMerchantsFile);
+                }
+                catch (Exception e)
+                {
+                    MessageBox.Show("Couldn't download the latest Merchants Adresses file from the server.\nContinuing to work with the local version.");
+                }
             }
-            */
 
+            xlWorkbook = xlAppQA.Workbooks.Open(pathToMerchantsFile);
 
-            var securedPassword = new SecureString();
-            foreach (var c in password.ToCharArray()) securedPassword.AppendChar(c);
-            var credentials = new SharePointOnlineCredentials(username, securedPassword);
-
-            DownloadFile(url, credentials, "Merchants Adresses.xlsx");
-
-
-            xlWorkbook = xlAppQA.Workbooks.Open(path);
-
-            environmentList.Add(EnvironmentType.QA, new EnvironmentData(4, xlWorkbook.Sheets["QA"], "54.72.115.215"));
+            environmentList.Add(EnvironmentType.QA, new EnvironmentData(5, xlWorkbook.Sheets["QA"], "54.72.115.215"));
             environmentList.Add(EnvironmentType.Staging, new EnvironmentData(5, xlWorkbook.Sheets["Staging"], "54.72.120.2"));
             environmentList.Add(EnvironmentType.Production, new EnvironmentData(3, xlWorkbook.Sheets["Production"]));
 
             InitializeComponent();
             initializeMerchantsListBox();
 
-        }
-
-        private static void DownloadFile(string webUrl, ICredentials credentials, string filePath)
-        {
-            using (WebClient client = new WebClient())
-            {
-                //client.Headers.Add("X-FORMS_BASED_AUTH_ACCEPTED", "f");
-                //client.Headers.Add("User-Agent: Other");
-
-                client.UseDefaultCredentials = true;
-                //client.Proxy.Credentials = System.Net.CredentialCache.DefaultCredentials;
-                //client.Proxy = null;
-                //client.Credentials = credentials;
-                //client.Credentials = new NetworkCredential("Denis.Hural@global-e.com", "L0g1tech_10");
-                //HttpWebRequest req = (HttpWebRequest)WebRequest.Create(webUrl);
-                //req.UserAgent = "testacc";
-                client.DownloadFile(new Uri(webUrl), filePath);
-            }
         }
 
         public void initializeMerchantsListBox()
@@ -182,24 +151,37 @@ namespace GE_Merchant_Picker
 
             var options = new ChromeOptions();
             options.AddArgument("incognito");
+            options.AddArguments("start-maximized");
 
             var driverService = ChromeDriverService.CreateDefaultService();
             driverService.HideCommandPromptWindow = true;
-            IWebDriver driver = new ChromeDriver(driverService, options);
-            driver.Url = Convert.ToString(uri);
 
-            if (loginUserName != "" && loginPassword != "")
+            //In case user will imediatelly close the browser the following line will throw an exeption
+            //to avoid it just catch this exeption
+            try
             {
-                AutoItX.WinWait("- Google Chrome", "", 1);
-                AutoItX.WinActivate("- Google Chrome");
-                AutoItX.Send(loginUserName);
-                AutoItX.Send("{TAB}", 0);
-                AutoItX.Send(loginPassword);
-                AutoItX.Send("{TAB}", 0);
-                AutoItX.Send("{Enter}", 0);
-            }
+                IWebDriver driver = new ChromeDriver(driverService, options);
+                driver.Url = Convert.ToString(uri);
 
-            driver.Manage().Window.Maximize();
+
+                if (!String.IsNullOrWhiteSpace(loginUserName) && !String.IsNullOrWhiteSpace(loginPassword))
+                {
+                    AutoItX.WinWait("- Google Chrome", "", 1);
+                    AutoItX.WinActivate("- Google Chrome");
+
+                    //Put credentials into autorization popup
+                    AutoItX.Send(loginUserName + "{TAB}" + loginPassword + "{TAB}");
+
+                    //Put credentials into autorization popup with confirmation
+                    //AutoItX.Send(loginUserName + "{TAB}" + loginPassword + "{TAB}" + "{Enter}");
+                }
+
+            }
+            catch (System.InvalidOperationException e) { }
+
+            //WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+            //IAlert alert = wait.Until(ExpectedConditions.AlertIsPresent());
+            //alert.SetAuthenticationCredentials(loginUserName, loginPassword);
 
             //try { driver.Navigate().Refresh(); }
             //catch (OpenQA.Selenium.NoSuchWindowException e) { }
@@ -251,6 +233,11 @@ namespace GE_Merchant_Picker
         private void GE_Merchant_Picker_Form_FormClosing(object sender, FormClosingEventArgs e)
         {
             xlWorkbook.Close();
+
+            //Kills stray local chromedriver.exe instances.
+            System.Diagnostics.Process process = new System.Diagnostics.Process();
+            process.StartInfo.FileName = "kill_chromedriver.bat";
+            process.Start();
         }
     }
 }
