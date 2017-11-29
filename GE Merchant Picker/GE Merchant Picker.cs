@@ -3,14 +3,12 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
-using OpenQA.Selenium.Support.UI;
 using Microsoft.Office.Interop.Excel;
 using System.IO;
 using AutoIt;
 using System.Drawing;
 using System.Text;
-using System.Net;
-using System.Net.NetworkInformation;
+
 
 namespace GE_Merchant_Picker
 {
@@ -48,16 +46,24 @@ namespace GE_Merchant_Picker
             //Get latest Merchant's file from sharepoint
             using (var client = new System.Net.WebClient())
             {
-                //String destFileName = "Merchants Adresses.xlsx";
                 client.UseDefaultCredentials = true;
-                try
+
+                if (!IsOpened(fileName))
                 {
-                    client.DownloadFile(urlToDownloadMerhcnatsFile, pathToMerchantsFile);
+                    try
+                    {
+                        client.DownloadFile(urlToDownloadMerhcnatsFile, pathToMerchantsFile);
+                    }
+                    catch (Exception e)
+                    {
+                        MessageBox.Show(e.InnerException.Message);
+                    }
                 }
-                catch (Exception e)
+                else
                 {
-                    MessageBox.Show("Couldn't download the latest Merchants Adresses file from the server.\nContinuing to work with the local version.");
+                    MessageBox.Show("The " + fileName + " is already opened.\nPlease close it and restart the programm in order to upload the latest version from the server.");
                 }
+
             }
 
             xlWorkbook = xlAppQA.Workbooks.Open(pathToMerchantsFile);
@@ -69,6 +75,22 @@ namespace GE_Merchant_Picker
             InitializeComponent();
             initializeMerchantsListBox();
 
+        }
+
+        static bool IsOpened(string wbook)
+        {
+            bool isOpened = true;
+            Microsoft.Office.Interop.Excel.Application exApp;
+            exApp = (Microsoft.Office.Interop.Excel.Application)System.Runtime.InteropServices.Marshal.GetActiveObject("Excel.Application");
+            try
+            {
+                exApp.Workbooks.get_Item(wbook);
+            }
+            catch (Exception)
+            {
+                isOpened = false;
+            }
+            return isOpened;
         }
 
         public void initializeMerchantsListBox()
