@@ -137,6 +137,5 @@ namespace GE_Merchant_Picker
                         + merchant.merchantSiteUri + "', 'https://', '')) or SiteURL = (select replace('' + (select LEFT('"
                         + merchant.merchantSiteUri + "', LEN('" + merchant.merchantSiteUri + "')-1)), 'https://', '')))";
         }
-
     }
 }
