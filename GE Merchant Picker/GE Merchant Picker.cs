@@ -91,7 +91,8 @@ namespace GE_Merchant_Picker
             StringBuilder stringBuilder = new StringBuilder();
 
             if (!string.IsNullOrWhiteSpace(selectedMerchant.mid)) stringBuilder.Append("MerchantID --> " + selectedMerchant.mid);
-            if (!string.IsNullOrWhiteSpace(selectedMerchant.platformType)) stringBuilder.Append("\nPlatform --> " + selectedMerchant.platformType);
+            if (!string.IsNullOrWhiteSpace(selectedMerchant.browsingPlatformTypeId)) stringBuilder.Append("\nBrowsing Platform --> " + selectedMerchant.browsingPlatformTypeId);
+            if (!string.IsNullOrWhiteSpace(selectedMerchant.apiPlatformTypeId)) stringBuilder.Append("\nAPI Platform --> " + selectedMerchant.apiPlatformTypeId);
             if (!string.IsNullOrWhiteSpace(selectedMerchant.merchantSiteUri)) stringBuilder.Append("\nURL -->  " + selectedMerchant.merchantSiteUri);
             if (!string.IsNullOrWhiteSpace(selectedMerchant.siteLoginUserName)) stringBuilder.Append("\nUser -->  " + selectedMerchant.siteLoginUserName);
             if (!string.IsNullOrWhiteSpace(selectedMerchant.siteLoginPassword)) stringBuilder.Append("\nPass -->  " + selectedMerchant.siteLoginPassword);

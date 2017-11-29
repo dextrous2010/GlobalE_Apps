@@ -6,7 +6,8 @@ namespace GE_Merchant_Picker
     {
         public String merchantName;
         public String mid;
-        public String platformType;
+        public String browsingPlatformTypeId;
+        public String apiPlatformTypeId;
         public String siteLoginUserName;
         public String siteLoginPassword;
         public String adminLoginUserName;
@@ -31,7 +32,8 @@ namespace GE_Merchant_Picker
         {
             merchantName = "";
             mid = "";
-            platformType = "";
+            browsingPlatformTypeId = "";
+            apiPlatformTypeId = "";
             siteLoginUserName = "";
             siteLoginPassword = "";
             adminLoginUserName = "";

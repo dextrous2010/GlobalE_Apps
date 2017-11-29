@@ -64,14 +64,70 @@ namespace GE_Merchant_Picker
 
             if (!string.IsNullOrWhiteSpace(ConnectionString))
             {
-                if (merchant.mid == "")
+                if (String.IsNullOrEmpty(merchant.mid))
                 {
+                    String queryMid = buildQueryForReturnSpecificColumnValueFromMerchantsTable("MerchantId", merchant);
+                    merchant.mid = DAL.readFromSQL(queryMid, "MerchantId", ConnectionString);
+                }
 
-                    //String queryMid = "select top 1 MerchantId from Merchants where merchantname like '%" + merchant.merchantName + "%'"
-                    //                    + " and SiteURL = '" + merchant.merchantSiteUri + "'" + " and IsActive = 1";
+                String queryBrowsingPlatformTmp;
+                
+                if (!String.IsNullOrEmpty(merchant.mid))
+                {
+                    queryBrowsingPlatformTmp = "select MerchantPlatformName from MerchantPlatforms where MerchantPlatformId = (" +
+                    "select top 1 BrowsingPlatformTypeId from Merchants where merchantid = " + merchant.mid + ")";
+                }
+                else
+                {
+                    queryBrowsingPlatformTmp = "select MerchantPlatformName from MerchantPlatforms where MerchantPlatformId = ("
+                        + buildQueryForReturnSpecificColumnValueFromMerchantsTable("BrowsingPlatformTypeId", merchant);
+                }
+
+                String queryBrowsingPlatform = queryBrowsingPlatformTmp;
+
+                //When query has specific characters - replace them to avoid exception
+                //
+                if (queryBrowsingPlatformTmp.Contains("Paul's"))
+                {
+                    queryBrowsingPlatform = queryBrowsingPlatformTmp.Replace("Paul's", "Paul_s");
+                }
+
+                merchant.browsingPlatformTypeId = DAL.readFromSQL(queryBrowsingPlatform, "MerchantPlatformName", ConnectionString);
 
 
-                    String queryMid = "select top 1 MerchantId from Merchants where merchantname like '%" + merchant.merchantName + "%'"
+                String queryAPIPlatformTmp;
+
+                if (!String.IsNullOrEmpty(merchant.mid))
+                {
+                    queryAPIPlatformTmp = "select MerchantPlatformName from MerchantPlatforms where MerchantPlatformId = (" +
+                    "select top 1 APIPlatformTypeId from Merchants where merchantid = " + merchant.mid + ")";
+                }
+                else
+                {
+                    queryAPIPlatformTmp = "select MerchantPlatformName from MerchantPlatforms where MerchantPlatformId = ("
+                        + buildQueryForReturnSpecificColumnValueFromMerchantsTable("APIPlatformTypeId", merchant);
+                }
+
+                String queryAPIPlatform = queryAPIPlatformTmp;
+
+                //When query has specific characters - replace them to avoid exception
+                //
+                if (queryBrowsingPlatformTmp.Contains("Paul's"))
+                {
+                    queryAPIPlatform = queryBrowsingPlatformTmp.Replace("Paul's", "Paul_s");
+                }
+
+                merchant.apiPlatformTypeId = DAL.readFromSQL(queryAPIPlatform, "MerchantPlatformName", ConnectionString);
+
+            }
+
+            return merchant;
+        }
+
+        private String buildQueryForReturnSpecificColumnValueFromMerchantsTable (String columnName, Merchant merchant)
+        {
+
+            return "select top 1 " + columnName + " from Merchants where merchantname like '%" + merchant.merchantName + "%'"
                         + " and IsActive = 1" + " and (SiteURL = '" + merchant.merchantSiteUri + "'"
                         + " or SiteURL = (select LEFT('" + merchant.merchantSiteUri + "', LEN('" + merchant.merchantSiteUri
                         + "')-1)) or SiteURL = (select('" + merchant.merchantSiteUri + "' + '/'))"
@@ -80,35 +136,6 @@ namespace GE_Merchant_Picker
                         + "', LEN('" + merchant.merchantSiteUri + "')-1)), 'http://', '')) or SiteURL = (select replace('"
                         + merchant.merchantSiteUri + "', 'https://', '')) or SiteURL = (select replace('' + (select LEFT('"
                         + merchant.merchantSiteUri + "', LEN('" + merchant.merchantSiteUri + "')-1)), 'https://', '')))";
-
-                    merchant.mid = DAL.readFromSQL(queryMid, "MerchantId", ConnectionString);
-                }
-
-                String queryPlatformTmp = "select MerchantPlatformName from MerchantPlatforms where MerchantPlatformId = (" +
-                    "select top 1 MerchantPlatformId from Merchants where merchantname like '%" + merchant.merchantName + "%'"
-                        + " and IsActive = 1" + " and (SiteURL = '" + merchant.merchantSiteUri + "'"
-                        + " or SiteURL = (select LEFT('" + merchant.merchantSiteUri + "', LEN('" + merchant.merchantSiteUri
-                        + "')-1)) or SiteURL = (select('" + merchant.merchantSiteUri + "' + '/'))"
-                        + " or SiteURL = (select replace('" + merchant.merchantSiteUri
-                        + "', 'http://', '')) or SiteURL = (select replace('' + (select LEFT('" + merchant.merchantSiteUri
-                        + "', LEN('" + merchant.merchantSiteUri + "')-1)), 'http://', '')) or SiteURL = (select replace('"
-                        + merchant.merchantSiteUri + "', 'https://', '')) or SiteURL = (select replace('' + (select LEFT('"
-                        + merchant.merchantSiteUri + "', LEN('" + merchant.merchantSiteUri + "')-1)), 'https://', ''))))";
-
-                String queryPlatform = queryPlatformTmp;
-
-                //When query has specific characters - replace them to avoid exception
-                //
-                if (queryPlatformTmp.Contains("Paul's"))
-                {
-                    queryPlatform = queryPlatformTmp.Replace("Paul's", "Paul_s");
-                }
-
-                merchant.platformType = DAL.readFromSQL(queryPlatform, "MerchantPlatformName", ConnectionString);
-
-            }
-
-            return merchant;
         }
 
     }
