@@ -171,6 +171,7 @@ namespace GE_Merchant_Picker
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.Name = "GE_Merchant_Picker_Form";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "GE Merchant Picker";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.GE_Merchant_Picker_Form_FormClosing);
             this.ResumeLayout(false);

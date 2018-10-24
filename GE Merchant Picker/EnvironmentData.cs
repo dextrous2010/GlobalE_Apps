@@ -84,7 +84,7 @@ namespace GE_Merchant_Picker
                     queryPlatform = queryPlatformTmp.Replace("Paul's", "Paul_s");
                 }
 
-                merchant.platformType = DAL.readFromSQL(queryPlatform, "MerchantPlatformName", ConnectionString);
+                merchant.apiPlatformTypeId = DAL.readFromSQL(queryPlatform, "MerchantPlatformName", ConnectionString);
                 
             }
 

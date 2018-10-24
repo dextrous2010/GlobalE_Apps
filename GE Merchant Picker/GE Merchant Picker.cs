@@ -32,9 +32,8 @@ namespace GE_Merchant_Picker
 
         Dictionary<EnvironmentType, EnvironmentData> environmentList = new Dictionary<EnvironmentType, EnvironmentData>();
 
-        static string fileName = "Merchants Adresses.xlsx";
-        static string path = Path.Combine(Environment.CurrentDirectory, @"..\..\..\" + fileName);
-        //string pathToMerchantsFile = Path.Combine(Environment.CurrentDirectory, fileName);
+        static string fileName = string.Empty;
+        static string path = string.Empty;
 
 
         //Create COM Objects. Create a COM object for everything that is referenced
@@ -42,31 +41,72 @@ namespace GE_Merchant_Picker
         static Workbook xlWorkbook;
 
 
-
-
         public GE_Merchant_Picker_Form()
         {
 
-            //using (var client = new System.Net.WebClient())
-            //{
-            //    client.Credentials = new NetworkCredential("denis.hural@global-e.com", "L0g1tech_10");
-            //    client.DownloadFile("https://globaleonline-my.sharepoint.com/personal/ifat_perlmandomy_global-e_com/_layouts/15/guestaccess.aspx?guestaccesstoken=kLW64SzxxAp0WOSrhQYUfiY2mtfj8kuh3auEBOYDy4c%3d&docid=10fc9c202737e438f975c8ef3ae822b8d&rev=1", "Merchants Adresses.xlsx");
-            //}
+            Console.WriteLine("Trying to upload latest file with merchant addresses from sharepoint...");
+            using (var client = new System.Net.WebClient())
+            {
+                try
+                {
+                    //client.Credentials = new NetworkCredential("denis.hural@global-e.com", "L0g1tech_10");
+                    client.DownloadFile("https://globaleonline-my.sharepoint.com/personal/ifat_perlmandomy_global-e_com/_layouts/15/Doc.aspx?sourcedoc=%7B0fc9c202-737e-438f-975c-8ef3ae822b8d%7D&action=default", "Merchants Adresses.xlsx");
+                    fileName = "Merchants Adresses.xlsx";
+                    Console.WriteLine("The file has been successfully downloaded.");
+                }
+                catch
+                {
+                    Console.WriteLine("Could not download the file. Will work with offline version.");
+                    fileName = "Merchants Adresses Offline.xlsx";
+                }
+            }
 
+            path = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase) + "\\" + fileName;
 
             xlWorkbook = xlAppQA.Workbooks.Open(path);
 
-            environmentList.Add(EnvironmentType.QA, new EnvironmentData(4, xlWorkbook.Sheets["QA"], "54.72.115.215"));
-            environmentList.Add(EnvironmentType.Staging, new EnvironmentData(5, xlWorkbook.Sheets["Staging"], "54.72.120.2"));
-            environmentList.Add(EnvironmentType.Production, new EnvironmentData(3, xlWorkbook.Sheets["Production"]));
-
             InitializeComponent();
             initializeMerchantsListBox();
-
         }
 
-        public void initializeMerchantsListBox()
+        void initializeMerchantsListBox()
         {
+            switch (chosenEnvironment)
+            {
+                case EnvironmentType.QA:
+                    if (!environmentList.ContainsKey(chosenEnvironment))
+                    {
+                        System.Action action = () => environmentList.Add(EnvironmentType.QA, new EnvironmentData(5, xlWorkbook.Sheets["QA"], "54.72.115.215"));
+                        using (Loading_Form lf = new Loading_Form(action))
+                        {
+                            lf.ShowDialog(this);
+                        }
+                    }
+                    break;
+                case EnvironmentType.Staging:
+                    if (!environmentList.ContainsKey(chosenEnvironment))
+                    {
+                        System.Action action = () => environmentList.Add(EnvironmentType.Staging, new EnvironmentData(5, xlWorkbook.Sheets["Staging"], "54.72.120.2"));
+                        using (Loading_Form lf = new Loading_Form(action))
+                        {
+                            lf.ShowDialog(this);
+                        }
+                    }
+                    break;
+                case EnvironmentType.Production:
+                    if (!environmentList.ContainsKey(chosenEnvironment))
+                    {
+                        System.Action action = () => environmentList.Add(EnvironmentType.Production, new EnvironmentData(3, xlWorkbook.Sheets["Production"]));
+                        using (Loading_Form lf = new Loading_Form(action))
+                        {
+                            lf.ShowDialog(this);
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+
             merchantsListBox.DataSource = environmentList[chosenEnvironment].merchantsList;
         }
 
@@ -85,7 +125,7 @@ namespace GE_Merchant_Picker
             StringBuilder stringBuilder = new StringBuilder();
 
             if (!string.IsNullOrWhiteSpace(selectedMerchant.mid)) stringBuilder.Append("MerchantID --> " + selectedMerchant.mid);
-            if (!string.IsNullOrWhiteSpace(selectedMerchant.platformType)) stringBuilder.Append("\nPlatform --> " + selectedMerchant.platformType);
+            if (!string.IsNullOrWhiteSpace(selectedMerchant.apiPlatformTypeId)) stringBuilder.Append("\nPlatform --> " + selectedMerchant.apiPlatformTypeId);
             if (!string.IsNullOrWhiteSpace(selectedMerchant.merchantSiteUri)) stringBuilder.Append("\nURL -->  " + selectedMerchant.merchantSiteUri);
             if (!string.IsNullOrWhiteSpace(selectedMerchant.siteLoginUserName)) stringBuilder.Append("\nUser -->  " + selectedMerchant.siteLoginUserName);
             if (!string.IsNullOrWhiteSpace(selectedMerchant.siteLoginPassword)) stringBuilder.Append("\nPass -->  " + selectedMerchant.siteLoginPassword);

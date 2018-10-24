@@ -38,6 +38,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -89,11 +90,20 @@
     <Compile Include="GE Merchant Picker.Designer.cs">
       <DependentUpon>GE Merchant Picker.cs</DependentUpon>
     </Compile>
+    <Compile Include="Loading_Form.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Loading_Form.Designer.cs">
+      <DependentUpon>Loading_Form.cs</DependentUpon>
+    </Compile>
     <Compile Include="Merchant.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="GE Merchant Picker.resx">
       <DependentUpon>GE Merchant Picker.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Loading_Form.resx">
+      <DependentUpon>Loading_Form.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -104,6 +114,7 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <None Include="Data\Merchants Adresses Offline.xlsx" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
